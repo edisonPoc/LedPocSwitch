@@ -78,12 +78,60 @@
    </div>
    
    <p><b>Click the switch to turn the bulb on/off</b></p> 
+   <input id="deviceList" type="hidden" value="${devices}"/>
    <br><br>
 
 </div>
   <script>
   deviceStatus=0;
   commandCounter=0;
+  $( document ).ready(function() {
+	    console.log( "Document Ready!" );
+	    deviceListElements=document.getElementById("deviceList");
+	    deviceListElements=deviceListElements.value;
+	    deviceListElements=deviceListElements.substring(1,deviceListElements.length-1);
+	    deviceListElements=deviceListElements.split(", ");
+	    console.log(deviceListElements);
+	    for(var i=0;i<deviceListElements.length;i++)
+	    	{
+	     $.ajax({
+	  		type : 'GET',
+	  		url : 'http://deviceinformationstatus.azurewebsites.net/IotDeviceInformation/getDeviceStatus', 
+	  		data : {
+	  			deviceID : deviceListElements[i]
+	  		},
+	  		async: false,
+	  		headers: {"Access-Control-Expose-Headers":"Content-Disposition","Access-Control-Allow-Credentials":"true"},
+	  		success : function(data) {
+	  			console.log("Device Status Recieved");
+	  			console.log(data);
+	  			deviceStatus=data;
+	  			if((deviceStatus!="")&&(deviceStatus!=" "))
+	  				{
+	  			var inputType=document.getElementById("switch"+deviceListElements[i]);
+	  			inputType.value=deviceStatus;
+	  			changeButtonStatus(deviceListElements[i]);
+	  				}
+	  		},
+			error : function(error) {
+				console.log("Could not send the command");
+			}
+	  	}); 
+	    	}
+	});
+	function changeButtonStatus() {
+	  var deviceId=arguments[0];
+	  var buttonType=document.getElementById(deviceId);
+	  if((deviceStatus===1)||(deviceStatus==1))
+	  {
+		  buttonType.className="myButton";
+		  buttonType.innerText="ON";
+	  }else if((deviceStatus===0)||(deviceStatus==0))
+	  {
+		  buttonType.className="myButtonOff";
+		  buttonType.innerText="OFF";
+	  }
+  }
   function changeButton() {
 	  var deviceId=arguments[0];
 	  var buttonType=document.getElementById(deviceId);
