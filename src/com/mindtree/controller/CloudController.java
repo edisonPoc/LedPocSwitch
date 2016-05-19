@@ -2,6 +2,7 @@ package com.mindtree.controller;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -28,7 +29,7 @@ public class CloudController {
 		ModelAndView model = new ModelAndView();
 		cloudService=new CloudServiceImpl();
 		System.out.println("Getting list of devices running on the Azure IOT Hub");
-		List<String> devices=cloudService.getAllDevices();
+		HashMap<String,String> devices=cloudService.getAllDevices();
 		model.addObject("devices",devices);
 		model.setViewName("switchControl.jsp");
 		return model;

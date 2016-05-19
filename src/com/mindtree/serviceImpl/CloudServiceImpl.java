@@ -16,29 +16,55 @@ import com.microsoft.azure.iot.service.sdk.FeedbackReceiver;
 import com.microsoft.azure.iot.service.sdk.IotHubServiceClientProtocol;
 import com.microsoft.azure.iot.service.sdk.ServiceClient;
 import com.microsoft.azure.iothub.IotHubClientProtocol;
+import com.microsoft.azure.storage.CloudStorageAccount;
+import com.microsoft.azure.storage.table.CloudTable;
+import com.microsoft.azure.storage.table.CloudTableClient;
+import com.microsoft.azure.storage.table.TableOperation;
+import com.mindtree.entity.CommandData;
+import com.mindtree.entity.DeviceEntity;
 import com.microsoft.azure.iot.service.sdk.Message;
 import com.microsoft.azure.iot.service.sdk.RegistryManager;
 
 public class CloudServiceImpl {
-	private static final String connectionString = "HostName=LedIotSuite.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=0mpAS5WMeuJJ2g6jGyvdWBidmIzPONV5ovT3HOfoUA8=";
-    //private static final String deviceId = "mydeviceLED";
-    private static final IotHubServiceClientProtocol protocol_Service = IotHubServiceClientProtocol.AMQPS;
-//private static final IotHubServiceClientProtocol iotHubServiceClientProtocol = IotHubServiceClientProtocol.AMQPS_WS;
+	private static final String connectionString = "HostName=LedIotSolution.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=HWYsgV2YckGE4K5qBmWKmLZJbkMaIR5pYgId3b2H8N8=";
+	// private static final String deviceId = "mydeviceLED";
+	private static final IotHubServiceClientProtocol protocol_Service = IotHubServiceClientProtocol.AMQPS;
+	// private static final IotHubServiceClientProtocol
+	// iotHubServiceClientProtocol = IotHubServiceClientProtocol.AMQPS_WS;
+	public static final String storageConnectionString = "DefaultEndpointsProtocol=http;" + "AccountName=lediotsolution;"
+			+ "AccountKey=4UmXKhpd+9VUL3usGRVj3hspk+oP85YIzxEiVwjWQNjzZLz7tfuNTAD+a3BuAReG0YLCJ7yjam/1Ywsw3TveXQ==";
+	
+	private static ServiceClient serviceClient = null;
+	private static FeedbackReceiver feedbackReceiver = null;
 
-private static ServiceClient serviceClient = null;
-private static FeedbackReceiver feedbackReceiver = null;
-public List<String> getAllDevices() throws Exception
+public HashMap<String,String> getAllDevices() throws Exception
 {
-	List<String> allDevices=new ArrayList<String>();
+	HashMap<String,String> allDevices=new HashMap<String,String>();
 	RegistryManager registryManager = RegistryManager.createFromConnectionString(connectionString);	
 	List<Device> devices=registryManager.getDevices(10000);
 	System.out.println("size "+devices.size());
+	CloudStorageAccount storageAccount =
+		       CloudStorageAccount.parse(storageConnectionString);
+
+		    // Create the table client.
+		    CloudTableClient tableClient = storageAccount.createCloudTableClient();
+
+		    // Create a cloud table object for the table.
+		    CloudTable cloudTable = tableClient.getTableReference("DeviceList");
+		    // Output the entity.
+	
 	for(Device dev:devices)
 	{
-		allDevices.add(dev.getDeviceId());
-	}
+	     TableOperation retrieveData =
+	       TableOperation.retrieve(dev.getDeviceId(),"LedIotSolution", DeviceEntity.class);
+
+	   // Submit the operation to the table service and get the specific entity.
+	   DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
+		allDevices.put(dev.getDeviceId(),specificEntity.getType());
+	} 
 	return allDevices;
 }
+
 public void sendCommandToDevice(String data,String deviceId) throws Exception
 {
 	System.out.println("********* Starting ServiceClient sample...");
@@ -46,11 +72,16 @@ public void sendCommandToDevice(String data,String deviceId) throws Exception
     openServiceClient();
     openFeedbackReceiver(deviceId);
 
-    String commandMessage = data;
-
+    //String commandMessage = data;
+CommandData commandData=new CommandData();
+commandData.setName("ChangeLEDState");
+commandData.setMessageId("123223");
+commandData.setCreatedTime(new Date().toString());
+HashMap<String,Object> parameter=new HashMap<String,Object>();
+parameter.put("LEDState",data);
+commandData.setParameters(parameter);
     System.out.println("********* Sending message to device...");
-
-    Message messageToSend = new Message(commandMessage);
+    Message messageToSend = new Message(commandData.serialize());
     messageToSend.setDeliveryAcknowledgement(DeliveryAcknowledgement.Full);
 
     // Setting standard properties
@@ -85,45 +116,40 @@ public void sendCommandToDevice(String data,String deviceId) throws Exception
     //System.exit(0);
 
 }
-protected static void openServiceClient() throws Exception
-{
-    System.out.println("Creating ServiceClient...");
-    serviceClient = ServiceClient.createFromConnectionString(connectionString, protocol_Service);
 
-    CompletableFuture<Void> future = serviceClient.openAsync();
-    future.get();
-    System.out.println("********* Successfully created an ServiceClient.");
-}
+	protected static void openServiceClient() throws Exception {
+		System.out.println("Creating ServiceClient...");
+		serviceClient = ServiceClient.createFromConnectionString(connectionString, protocol_Service);
 
-protected static void closeServiceClient() throws ExecutionException, InterruptedException, IOException
-{
-    serviceClient.close();
+		CompletableFuture<Void> future = serviceClient.openAsync();
+		future.get();
+		System.out.println("********* Successfully created an ServiceClient.");
+	}
 
-    CompletableFuture<Void> future = serviceClient.closeAsync();
-    future.get();
-    serviceClient = null;
-    System.out.println("********* Successfully closed ServiceClient.");
-}
+	protected static void closeServiceClient() throws ExecutionException, InterruptedException, IOException {
+		serviceClient.close();
 
-protected static void openFeedbackReceiver(String deviceId) throws ExecutionException, InterruptedException
-{
-    if (serviceClient != null)
-    {
-        feedbackReceiver = serviceClient.getFeedbackReceiver(deviceId);
-        if (feedbackReceiver != null)
-        {
-            CompletableFuture<Void> future = feedbackReceiver.openAsync();
-            future.get();
-            System.out.println("********* Successfully opened FeedbackReceiver...");
-        }
-    }
-}
+		CompletableFuture<Void> future = serviceClient.closeAsync();
+		future.get();
+		serviceClient = null;
+		System.out.println("********* Successfully closed ServiceClient.");
+	}
 
-protected static void closeFeedbackReceiver() throws ExecutionException, InterruptedException
-{
-    CompletableFuture<Void> future = feedbackReceiver.closeAsync();
-    future.get();
-    feedbackReceiver = null;
-    System.out.println("********* Successfully closed FeedbackReceiver.");
-}
+	protected static void openFeedbackReceiver(String deviceId) throws ExecutionException, InterruptedException {
+		if (serviceClient != null) {
+			feedbackReceiver = serviceClient.getFeedbackReceiver(deviceId);
+			if (feedbackReceiver != null) {
+				CompletableFuture<Void> future = feedbackReceiver.openAsync();
+				future.get();
+				System.out.println("********* Successfully opened FeedbackReceiver...");
+			}
+		}
+	}
+
+	protected static void closeFeedbackReceiver() throws ExecutionException, InterruptedException {
+		CompletableFuture<Void> future = feedbackReceiver.closeAsync();
+		future.get();
+		feedbackReceiver = null;
+		System.out.println("********* Successfully closed FeedbackReceiver.");
+	}
 }
