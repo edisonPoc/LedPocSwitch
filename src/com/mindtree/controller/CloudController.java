@@ -5,6 +5,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.simple.JSONArray;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.google.gson.Gson;
 import com.mindtree.serviceImpl.CloudServiceImpl;
 
 @Controller
@@ -33,5 +35,14 @@ public class CloudController {
 		model.addObject("devices",devices);
 		model.setViewName("switchControl.jsp");
 		return model;
+	}
+	@ResponseBody
+	@RequestMapping(value = "/showActivity", method = RequestMethod.GET)
+	public String showActivity(@RequestParam("deviceId") String deviceId) throws Exception{
+		cloudService=new CloudServiceImpl();
+		System.out.println("Getting list of device activity");
+		JSONArray deviceData=cloudService.getDeviceActivity(deviceId);
+		String json = new Gson().toJson(deviceData);		
+		return json;
 	}
 }
