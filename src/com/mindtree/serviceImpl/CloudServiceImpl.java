@@ -64,7 +64,7 @@ public class CloudServiceImpl {
 		// Output the entity.
 
 		for (Device dev : devices) {
-			TableOperation retrieveData = TableOperation.retrieve(dev.getDeviceId(), "LedIotSolution",
+			TableOperation retrieveData = TableOperation.retrieve("LedIotSolution",dev.getDeviceId(),
 					DeviceEntity.class);
 
 			// Submit the operation to the table service and get the specific
