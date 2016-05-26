@@ -21,7 +21,7 @@ article, aside, figure, footer, header, hgroup, nav, section {
 
 body { 
   font: normal .9em arial, sans-serif;
-  background: #F5F5F5 url(../images/pattern.png);
+  background: #fff url(../images/pattern.png);
   color: #444;
   padding-bottom: 40px;
 }
@@ -43,9 +43,7 @@ h1, h2, h3, h4, h5, h6 {
   padding: 15px 0 5px 0;
 }
 
-h1 { 
-  text-shadow: 1px 1px #FFF;
-}
+
 
 h2 { 
   font: normal 170% 'News Cycle', arial, sans-serif;
@@ -115,13 +113,17 @@ ol li {
   margin: 20px auto 0 auto;
 }
 
-header { 
-  width: 950px;
-  height: 105px;
+header {
+  width: 1099px;
+  height: 135px;
+  margin-left: -85px;
+  background-color: #800000;
+  margin-bottom: 1%;
+  box-shadow:3px 3px 3px grey;
 }
 
 #logo { 
-  width: 220px;
+  
   float: left;
   height: 100px;
   background: transparent;
@@ -131,8 +133,8 @@ header {
 #logo h1 { 
   font: normal 220% 'News Cycle', arial, sans-serif;
   padding: 28px 0 0 0px;
-  color: #222;
-  letter-spacing: -2px;
+  color: #fff;
+  letter-spacing: 0px;
 }
 
 #logo h1 a { 
@@ -153,17 +155,16 @@ nav {
   padding: 35px 0 0 0;
 } 
 
-#site_content { 
+#site_content {
   width: 1100px;
   overflow: hidden;
   margin: 4px auto 0 auto;
   padding: 0;
-  background: #eee;
+  background: antiquewhite;
   border-top: 0;
   border-bottom: 0;
   margin-left: -9%;
-} 
-
+}
 #sidebar_container { 
   float: left;
   width: 450px;
@@ -171,12 +172,15 @@ nav {
   height: 450px;
 }
 
-#content { 
+#content {
   text-align: center;
   width: 444px;
   padding: 0 0 5px 30px;
   margin: 0;
   float: left;
+  /* margin: 0 auto; */
+  margin-left: 5%;
+  margin-top: 15%;
 }
 
 #content ul { 
@@ -231,8 +235,10 @@ footer {
   padding: 20px 0 5px 0;
   text-align: center; 
   color: #222;
-  background: #D4D4D4;
+  background: #FFD197;
   margin-left: -13%;
+  margin-top: 1%;
+  box-shadow:5px 5px 5px darkgrey;
 }
 
 footer p { 
@@ -286,7 +292,7 @@ footer a:hover {
   -webkit-border-radius: 6px 6px 6px 6px;
   -moz-border-radius: 6px 6px 6px 6px;
   background: #444;
-  text-shadow: 1px 1px #000;
+  
   color: #FFF;
   line-height: 15px;
 }
@@ -358,7 +364,7 @@ ul img {
 }
 
 .lavaLampWithImage li.back {
-  background: #DDD;
+   background: burlywood;
   border-radius: 15px 15px 15px 15px;
   -moz-border-radius: 15px 15px 15px 15px;
   -webkit-border: 15px 15px 15px 15px;
@@ -366,13 +372,14 @@ ul img {
   z-index: 8;
   position: absolute;
   margin-top: -4px;
+  color:#000 !important;
 }
 
 .lavaLampWithImage li a {
   font: normal 130% 'News Cycle', sans-serif;
-  text-shadow:1px 1px #FFF;
+  
   text-decoration: none;
-  color: #222;
+  color: #fff;
   outline: none;
   text-align: center;
   letter-spacing: 0;
@@ -385,6 +392,7 @@ ul img {
   overflow: hidden;
   margin: auto 10px;    
 }
+
 
 .lavaLampWithImage li a:hover, .lavaLampWithImage li a:active, .lavaLampWithImage li a:visited {
   border: none;

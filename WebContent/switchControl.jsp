@@ -198,7 +198,7 @@
 								} else if (deviceListElementBreak[1] === 'Rasberry') {
 									headerItem.style.background = "#d5ff80";
 								}
-								 else if (deviceListElementBreak[1] === 'Gladius') {
+								 else if (deviceListElementBreak[1] === 'Gladius_Parent') {
 										headerItem.style.background = "#ff6666";
 									}
 								$

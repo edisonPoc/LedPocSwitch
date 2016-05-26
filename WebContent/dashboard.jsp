@@ -12,7 +12,7 @@
 <body>
  <div id="main">
     <header>
-      <div id="logo"><h1>Light Bulb Demo</h1></div>
+      <div id="logo"><h1>LIGHT BULB DEMO</h1></div>
       <nav>
         <ul class="lavaLampWithImage" id="lava_menu">
           <li class="current"><a href="dashboard.jsp">Home</a></li>
