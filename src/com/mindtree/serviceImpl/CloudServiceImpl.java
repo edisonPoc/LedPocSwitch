@@ -49,10 +49,13 @@ public class CloudServiceImpl {
 	private static ServiceClient serviceClient = null;
 	private static FeedbackReceiver feedbackReceiver = null;
 
-	public HashMap<String, String> getAllDevices() throws Exception {
+	public List<Object> getAllDevices() throws Exception {
+		List<Object> returnAllDevices=new ArrayList<Object>();
 		HashMap<String, String> allDevices = new HashMap<String, String>();
 		RegistryManager registryManager = RegistryManager.createFromConnectionString(connectionString);
 		List<Device> devices = registryManager.getDevices(10000);
+		HashMap<String,String> gladiusChildDevices=new HashMap<String, String>();
+		
 		System.out.println("size " + devices.size());
 		CloudStorageAccount storageAccount = CloudStorageAccount.parse(storageConnectionString);
 
@@ -70,12 +73,24 @@ public class CloudServiceImpl {
 			// Submit the operation to the table service and get the specific
 			// entity.
 			DeviceEntity specificEntity = cloudTable.execute(retrieveData).getResultAsType();
-			allDevices.put(dev.getDeviceId(), specificEntity.getType());
+			if(specificEntity.getType().equals("Gladius_Child"))
+			{
+				System.out.println("Inside GladiusChild");
+				System.out.println("Parent Gladius is "+specificEntity.getGladiusParentId());
+				gladiusChildDevices.put(dev.getDeviceId(),specificEntity.getGladiusParentId());
+				allDevices.put(dev.getDeviceId(), specificEntity.getType());
+			}
+			else
+			{
+				allDevices.put(dev.getDeviceId(), specificEntity.getType());
+			}
 		}
-		return allDevices;
+		returnAllDevices.add(allDevices);
+		returnAllDevices.add(gladiusChildDevices);
+		return returnAllDevices;
 	}
 
-	public void sendCommandToDevice(String data, String deviceId) throws Exception {
+	public void sendCommandToDevice(String data, String deviceId, boolean gladiusChildFlag) throws Exception {
 		System.out.println("********* Starting ServiceClient sample...");
 
 		openServiceClient();
@@ -86,9 +101,17 @@ public class CloudServiceImpl {
 		commandData.setName("ChangeLEDState");
 		commandData.setMessageId("123223");
 		commandData.setCreatedTime(new Date().toString());
+		if(gladiusChildFlag==false)
+		{
 		HashMap<String, Object> parameter = new HashMap<String, Object>();
 		parameter.put("LEDState", data);
 		commandData.setParameters(parameter);
+		}
+		else
+		{
+		commandData.setGladiusParameters(data);	
+		}
+		System.out.println(commandData.serialize());
 		System.out.println("********* Sending message to device...");
 		Message messageToSend = new Message(commandData.serialize());
 		System.out.println(commandData.serialize());

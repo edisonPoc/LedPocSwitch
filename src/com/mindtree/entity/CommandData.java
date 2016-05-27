@@ -8,11 +8,19 @@ public class CommandData {
 String Name;
 String MessageId;
 String CreatedTime;
+String GladiusParameters;
+
 HashMap<String,Object> Parameters;
 public String serialize() {
     Gson gson = new Gson();
     return gson.toJson(this);
   }
+public String getGladiusParameters() {
+	return GladiusParameters;
+}
+public void setGladiusParameters(String gladiusParameters) {
+	GladiusParameters = gladiusParameters;
+}
 public String getName() {
 	return Name;
 }

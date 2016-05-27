@@ -21,18 +21,21 @@ public class CloudController {
 	CloudServiceImpl cloudService;
 	@ResponseBody
 	@RequestMapping(value = "/sendCommand", method = RequestMethod.POST)
-	public void sendCommand(@RequestParam("deviceStatus") String data,@RequestParam("deviceId") String deviceId) throws Exception {
+	public void sendCommand(@RequestParam("deviceStatus") String data,@RequestParam("deviceId") String deviceId,@RequestParam("gladiusChildFlag") boolean gladiusChildFlag) throws Exception {
 		System.out.println("Sending data to Azure IOT Hub");
 		cloudService = new CloudServiceImpl();
-		cloudService.sendCommandToDevice(data,deviceId);
+		cloudService.sendCommandToDevice(data,deviceId,gladiusChildFlag);
 	}
 	@RequestMapping(value = "/getDeviceList", method = RequestMethod.GET)
 	public ModelAndView getDeviceList() throws Exception{
 		ModelAndView model = new ModelAndView();
 		cloudService=new CloudServiceImpl();
 		System.out.println("Getting list of devices running on the Azure IOT Hub");
-		HashMap<String,String> devices=cloudService.getAllDevices();
+		List<Object> deviceList=cloudService.getAllDevices();
+		HashMap<String,String> devices=(HashMap<String, String>) deviceList.get(0);
+		HashMap<String,String> gladiusChildDevices=(HashMap<String,String>) deviceList.get(1);
 		model.addObject("devices",devices);
+		model.addObject("gladiusChildDevices",gladiusChildDevices);
 		model.setViewName("switchControl.jsp");
 		return model;
 	}

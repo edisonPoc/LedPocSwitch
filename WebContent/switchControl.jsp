@@ -111,14 +111,15 @@
 		</header>
 		<div id="site_content" align="center">
 			<h1>Service integration with Azure IOT Hub as a switch</h1>
-			<div>
+			<div id="container">
 				<c:forEach items="${devices}" var="device" varStatus="loop">
 					<h3 id="header${loop.index}">
 						<b id="device${loop.index}"></b> <img
 							style="margin-left: 10%; margin-top: 0%" class="${loop.index}"
 							id="switch${device}" src="pic_bulboff.gif" width="55" height="55">
-						<a style="margin-left: 10%; margin-bottom: 2%" id="${device}"
-							onclick="changeButton('${device}')" class="myButton">ON</a> <a
+						<input type="button" style="margin-left: 10%; margin-bottom: 2%"
+							id="${device}" onclick="changeButton('${device}')"
+							class="myButton" value="ON"></input> <a
 							id="activity${loop.index}" data-toggle="modal"
 							data-target="#myModal${loop.index}" href="#"
 							onclick="getDeviceActivityData('${device}')"
@@ -138,6 +139,7 @@
 								<div class="modal-footer">
 									<button type="button" class="btn btn-default"
 										data-dismiss="modal">Close</button>
+
 								</div>
 							</div>
 						</div>
@@ -149,8 +151,9 @@
 			<p>
 				<b>Click the switch to turn the bulb on/off</b>
 			</p>
-			<input id="deviceList" type="hidden" value="${devices}" /> <br>
-			<br>
+			<input id="deviceList" type="hidden" value="${devices}" /> <input
+				id="gladiusChildDevices" type="hidden"
+				value="${gladiusChildDevices}" /><br> <br>
 
 		</div>
 		<footer>
@@ -197,10 +200,32 @@
 									headerItem.style.background = "#74fcf5";
 								} else if (deviceListElementBreak[1] === 'Rasberry') {
 									headerItem.style.background = "#d5ff80";
+								} else if (deviceListElementBreak[1] === 'Gladius_Parent') {
+									headerItem.style.background = "#ff6666";
+									headerItem.innerHTML = headerItem.innerHTML
+											+ '&nbsp;&nbsp;&nbsp;<input type="button" id="sendCommand'+i+'" value="Send Command"></input>';
+									gladiusButtonValue=document.getElementById("sendCommand"+i);
+									gladiusButtonValue.setAttribute("onclick","sendGladiusCommands('"+deviceListElementBreak[0]+"')");
+									console.log(gladiusButtonValue);
+									
+								} else if (deviceListElementBreak[1] === 'Gladius_Child') {
+
+									gladiusChildButton = document
+											.getElementById(deviceListElements[i]);
+									gladiusChildButton.type = "text";
+									gladiusChildButton.value = "";
+									gladiusChildButton.onclick = "";
+									gladiusChildButton.size = "2";
+									gladiusChildButton.id = "gladiusChild"
+											+ deviceListElementBreak[0];
+									console.log(gladiusChildButton);
+									gladiusChildImage = document
+											.getElementById("switch"
+													+ deviceListElements[i]);
+									gladiusChildImage.src = "waterMeter.gif";
+									gladiusChildImage.width = "80";
+
 								}
-								 else if (deviceListElementBreak[1] === 'Gladius_Parent') {
-										headerItem.style.background = "#ff6666";
-									}
 								$
 										.ajax({
 											type : 'GET',
@@ -214,25 +239,25 @@
 												"Access-Control-Allow-Credentials" : "true"
 											},
 											success : function(data) {
-												if($.trim(data))
-													{
-												console
-														.log("Device Status Recieved");
-												console.log(data);
-												dataParsed=JSON.parse(data);
-												deviceStatus = dataParsed.status;
-												if ((deviceStatus != "")
-														&& (deviceStatus != " ")) {
-													var inputType = document
-															.getElementById("switch"
-																	+ deviceListElements[i]);
-													if (deviceStatus === '1') {
-														inputType.src = "pic_bulbon.gif";
-													} else if (deviceStatus === '0') {
-														inputType.src = "pic_bulboff.gif";
+												if ($.trim(data)) {
+													console
+															.log("Device Status Recieved");
+													console.log(data);
+													dataParsed = JSON
+															.parse(data);
+													deviceStatus = dataParsed.status;
+													if ((deviceStatus != "")
+															&& (deviceStatus != " ")) {
+														var inputType = document
+																.getElementById("switch"
+																		+ deviceListElements[i]);
+														if (deviceStatus === '1') {
+															inputType.src = "pic_bulbon.gif";
+														} else if (deviceStatus === '0') {
+															inputType.src = "pic_bulboff.gif";
+														}
+														changeButtonStatus(deviceListElements[i]);
 													}
-													changeButtonStatus(deviceListElements[i]);
-												}
 												}
 											},
 											error : function(error) {
@@ -256,16 +281,18 @@
 				success : function(data) {
 					console.log("Got device activity data successfully");
 					console.log(data);
-					deviceActivityData=JSON.parse(data);
-					dataInsideModal="";
-					for(var i=0;i<deviceActivityData.length;i++)
-						{
-					dataInsideModal=dataInsideModal+deviceActivityData[i].time+"&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;"+deviceActivityData[i].status+"<br/>";
-						}
+					deviceActivityData = JSON.parse(data);
+					dataInsideModal = "";
+					for (var i = 0; i < deviceActivityData.length; i++) {
+						dataInsideModal = dataInsideModal
+								+ deviceActivityData[i].time
+								+ "&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;"
+								+ deviceActivityData[i].status + "<br/>";
+					}
 					modalDataEntry = document.getElementById("modalData"
 							+ deviceData);
 					console.log(modalDataEntry);
-					modalDataEntry.innerHTML=dataInsideModal;
+					modalDataEntry.innerHTML = dataInsideModal;
 
 				},
 				error : function(error) {
@@ -274,6 +301,50 @@
 			});
 
 		}
+		function sendGladiusCommands() {
+			var gladiusDeviceId = arguments[0];
+			console.log(gladiusDeviceId);
+			gladiusChildDevices = document
+					.getElementById("gladiusChildDevices");
+			gladiusValues = gladiusChildDevices.value;
+			gladiusValues = gladiusValues
+					.substring(1, gladiusValues.length - 1);
+			gladiusValues = gladiusValues.split(", ");
+			telemetryData = '{';
+			for (var k = 0; k < gladiusValues.length; k++) {
+				gladiusArrayBreak = gladiusValues[k].split("=");
+				if (gladiusArrayBreak[1] == arguments[0]) {
+					telemetryData = telemetryData + '"' + gladiusArrayBreak[0]
+							+ '":"';
+					gladiusInput = document.getElementById("gladiusChild"
+							+ gladiusArrayBreak[0]);
+					console.log(gladiusInput.value);
+					telemetryData = telemetryData + gladiusInput.value + '",';
+				}
+			}
+			console.log(telemetryData);
+			telemetryData = telemetryData
+					.substring(0, telemetryData.length - 1);
+			telemetryData = telemetryData + '}';
+			console.log(telemetryData);
+			$.ajax({
+				type : 'POST',
+				url : 'sendCommand',
+				data : {
+					deviceStatus : telemetryData,
+					deviceId : gladiusDeviceId,
+					gladiusChildFlag : true
+				},
+				success : function(data) {
+					console.log("Command successfully sent");
+				},
+				error : function(error) {
+					console.log("Could not send the command");
+				}
+			});
+
+		}
+
 		function changeButtonStatus() {
 			var deviceInfo = arguments[0];
 			var buttonType = document.getElementById(deviceInfo);
@@ -281,25 +352,26 @@
 			inputType.value = deviceStatus;
 			if ((deviceStatus === 1) || (deviceStatus == 1)) {
 				buttonType.className = "myButtonOff";
-				buttonType.innerText = "OFF";
+				buttonType.value = "OFF";
 
 			} else if ((deviceStatus === 0) || (deviceStatus == 0)) {
 				buttonType.className = "myButton";
-				buttonType.innerText = "ON";
+				buttonType.value = "ON";
 			}
 		}
 		function changeButton() {
 			deviceInformation = arguments[0];
 			var deviceId = arguments[0].split("=");
 			deviceId = deviceId[0];
+
 			var buttonType = document.getElementById(arguments[0]);
-			if (buttonType.innerText === "ON") {
+			if (buttonType.value === "ON") {
 				buttonType.className = "myButtonOff";
-				buttonType.innerText = "OFF";
+				buttonType.value = "OFF";
 				deviceStatus = 1;
 			} else {
 				buttonType.className = "myButton";
-				buttonType.innerText = "ON";
+				buttonType.value = "ON";
 				deviceStatus = 0;
 			}
 			console.log("Making ajax request to send command");
@@ -308,7 +380,8 @@
 				url : 'sendCommand',
 				data : {
 					deviceStatus : deviceStatus,
-					deviceId : deviceId
+					deviceId : deviceId,
+					gladiusChildFlag : false
 				},
 				success : function(data) {
 					console.log("Command successfully sent");
